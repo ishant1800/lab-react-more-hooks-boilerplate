@@ -1,37 +1,54 @@
-import React, { useState } from "react";
+import React, { useReducer, useRef } from "react";
 import "./App.css";
 
+const initialState = [];
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "ADD_TASK":
+      return [
+        ...state,
+        { id: state.length, text: action.payload, toggle: true }
+      ];
+    case "TOGGLE_CONTENT":
+      return state.map(task =>
+        task.id === action.payload
+          ? { ...task, toggle: !task.toggle }
+          : task
+      );
+    default:
+      return state;
+  }
+};
+
 const App = () => {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, dispatch] = useReducer(reducer, initialState);
+  const inputRef = useRef(null);
 
   const addTask = (inputValue) => {
     if (inputValue) {
-      setTasks([...tasks, { id: tasks.length, text: inputValue, toggle: true }]);
+      dispatch({ type: "ADD_TASK", payload: inputValue });
+      inputRef.current.value = "";
     }
   };
 
   const toggleContent = (id) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, toggle: !task.toggle } : task
-      )
-    );
+    dispatch({ type: "TOGGLE_CONTENT", payload: id });
   };
 
   const scrollUp = () => {
-    document.getElementById("inputBox").focus();
+    inputRef.current.focus();
   };
 
   return (
     <div>
       <input
         type="text"
-        id="inputBox"
+        ref={inputRef}
         placeholder="Type here and press enter"
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             addTask(e.target.value);
-            e.target.value = "";
           }
         }}
       />
